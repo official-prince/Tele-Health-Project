@@ -564,13 +564,13 @@ function Earnings({ providerId }: { providerId: string }) {
     const d = await res.json();
     setData(d);
   })(); }, [providerId]);
-  if (!data) return null;
+  const hasData = !!data;
   const exportCsv = () => {
     const rows: string[] = [];
     rows.push(["week","revenue","sessions"].join(','));
-    for (const r of data.byWeek || []) rows.push([`"${r.week}"`, r.revenue, r.sessions].join(','));
+    for (const r of (data?.byWeek || [])) rows.push([`"${r.week}"`, r.revenue, r.sessions].join(','));
     rows.push('');
-    rows.push(["totalRevenue", data.totalRevenue].join(','));
+    rows.push(["totalRevenue", data?.totalRevenue ?? 0].join(','));
     const csv = rows.join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -609,16 +609,16 @@ function Earnings({ providerId }: { providerId: string }) {
       <Card>
         <CardHeader><div className="flex items-center justify-between"><CardTitle>Summary</CardTitle><Button onClick={exportCsv} size="sm">Export CSV</Button></div></CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
-          <Stat title="Revenue" value={data.totalRevenue} />
-          <Stat title="Completed" value={data.completed} />
-          <Stat title="Cancelled" value={data.cancelled} />
+          <Stat title="Revenue" value={data?.totalRevenue || 0} />
+          <Stat title="Completed" value={data?.completed || 0} />
+          <Stat title="Cancelled" value={data?.cancelled || 0} />
         </CardContent>
       </Card>
       <Card>
         <CardHeader><CardTitle>Weekly</CardTitle></CardHeader>
         <CardContent className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.byWeek}>
+            <BarChart data={data?.byWeek || []}>
               <XAxis dataKey="week" hide />
               <YAxis />
               <Tooltip />
