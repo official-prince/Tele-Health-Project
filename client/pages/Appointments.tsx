@@ -10,6 +10,43 @@ import { useState, useEffect } from "react";
 import type { Appointment, CreateAppointmentResponse } from "@shared/api";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
+function getDefaultFeeGHS() {
+  const v = (import.meta as any).env?.VITE_DEFAULT_FEE_GHS ?? (typeof process !== 'undefined' ? (process.env as any)?.VITE_DEFAULT_FEE_GHS : undefined);
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : 100;
+}
+
+function PaystackButton({ appointment }: { appointment: Appointment }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fee = getDefaultFeeGHS();
+  const initiate = async () => {
+    setLoading(true); setError(null);
+    try {
+      const callbackUrl = `${window.location.origin}/payments/callback`;
+      const res = await fetch('/api/payments/paystack/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: appointment.id, email: appointment.patientEmail, amount: fee, callbackUrl })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to initiate payment');
+      window.location.href = data.authorization_url;
+    } catch (e: any) {
+      setError(e?.message || String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <div className="text-sm">Consultation fee: <span className="font-medium">GHS {fee.toFixed(2)}</span></div>
+      <Button onClick={initiate} disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pay now with Paystack'}</Button>
+      {error && <div className="text-xs text-destructive">{error}</div>}
+    </div>
+  );
+}
+
 function Intake({ appointmentId }: { appointmentId: string }) {
   const [values, setValues] = useState({ symptoms: "", medications: "", allergies: "" });
   const [saving, setSaving] = useState(false);
