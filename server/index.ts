@@ -6,6 +6,7 @@ import { getAppointments, listProviders, postAppointment, getAllAppointments, pa
 import { getMe, postLogin, postSignup } from "./routes/auth";
 import { getMyProfile, patchMyProfile, adminApproveDoctor, listDoctors, getEarnings, uploadLicense, getNotifications } from "./routes/doctor";
 import { getPatients, patchPatient, postRefund, getFinanceSummary, getPlans, upsertPlan, deletePlan, getAnnouncements, postAnnouncement, deleteAnnouncement, getTickets, postTicket, patchTicket, getSecurity, patchSecurity, getLogs, createDoctor } from "./routes/admin";
+import { initiatePayment, verifyPayment, paystackWebhook } from "./routes/payments";
 
 export function createServer() {
   const app = express();
@@ -44,6 +45,11 @@ export function createServer() {
   // Doctor payouts
   app.get("/api/doctor/:providerId/payouts", getPayouts);
   app.post("/api/doctor/:providerId/payouts", postPayout);
+
+  // Payments (Paystack)
+  app.post("/api/payments/initiate", initiatePayment);
+  app.get("/api/payments/verify", verifyPayment);
+  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), paystackWebhook);
 
   // Doctor profile and analytics
   app.get("/api/doctor/me", getMyProfile);
