@@ -680,7 +680,7 @@ function Settings({ profile, onChange }: { profile: DoctorProfile | null; onChan
         console.warn('Supabase upsert profile exception, falling back to API:', err);
       }
     }
-    const res = await fetch('/api/doctor/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: form.displayName, specialty: form.specialty, licenseNumber: form.licenseNumber, licenseState: form.licenseState, feeUSD: form.feeUSD, availability: form.availability }) });
+    const res = await fetch('/api/doctor/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ displayName: form.displayName, specialty: form.specialty, licenseNumber: form.licenseNumber, licenseState: form.licenseState, feeUSD: form.feeUSD, availability: form.availability }) });
     const data = await res.json();
     onChange(data);
   };
