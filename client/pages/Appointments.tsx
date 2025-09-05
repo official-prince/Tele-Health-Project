@@ -16,7 +16,7 @@ function getDefaultFeeGHS() {
   return Number.isFinite(n) && n > 0 ? n : 100;
 }
 
-function PaystackButton({ appointment }: { appointment: Appointment }) {
+function FlutterwaveButton({ appointment }: { appointment: Appointment }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fee = getDefaultFeeGHS();
@@ -24,14 +24,14 @@ function PaystackButton({ appointment }: { appointment: Appointment }) {
     setLoading(true); setError(null);
     try {
       const callbackUrl = `${window.location.origin}/payments/callback`;
-      const res = await fetch('/api/payments/paystack/initiate', {
+      const res = await fetch('/api/payments/flutterwave/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: appointment.id, email: appointment.patientEmail, amount: fee, callbackUrl })
+        body: JSON.stringify({ appointmentId: appointment.id, email: appointment.patientEmail, name: appointment.patientName, amount: fee, callbackUrl })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Failed to initiate payment');
-      window.location.href = data.authorization_url;
+      window.location.href = data.link;
     } catch (e: any) {
       setError(e?.message || String(e));
     } finally {
@@ -41,7 +41,7 @@ function PaystackButton({ appointment }: { appointment: Appointment }) {
   return (
     <div className="space-y-2">
       <div className="text-sm">Consultation fee: <span className="font-medium">GHS {fee.toFixed(2)}</span></div>
-      <Button onClick={initiate} disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pay now with Paystack'}</Button>
+      <Button onClick={initiate} disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pay now with Flutterwave'}</Button>
       {error && <div className="text-xs text-destructive">{error}</div>}
     </div>
   );
@@ -135,7 +135,7 @@ export default function Appointments() {
             <div><span className="text-muted-foreground">Where:</span> <a className="text-primary underline" href={submitted.meetingUrl} target="_blank" rel="noreferrer">Join video visit</a></div>
             <div className="pt-4">Confirmation code: <span className="font-mono tracking-wider bg-muted px-2 py-1 rounded">{submitted.confirmationCode}</span></div>
             <div className="pt-4">
-              <PaystackButton appointment={submitted} />
+              <FlutterwaveButton appointment={submitted} />
             </div>
             <div className="pt-6">
               <h3 className="font-semibold">Quick intake</h3>

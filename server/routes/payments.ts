@@ -1,6 +1,5 @@
 import type { RequestHandler } from "express";
 import crypto from "crypto";
-import fetch from "node-fetch";
 import { store as apptStore } from "./appointments";
 import type { ApiError, PaymentReceipt } from "@shared/api";
 

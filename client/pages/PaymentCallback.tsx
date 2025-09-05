@@ -11,13 +11,24 @@ export default function PaymentCallback() {
 
   useEffect(() => {
     const reference = params.get("reference");
-    if (!reference) { setError("Missing reference"); setLoading(false); return; }
+    const txRef = params.get("tx_ref");
+    const txId = params.get("transaction_id");
     (async () => {
       try {
-        const res = await fetch(`/api/payments/paystack/verify?reference=${encodeURIComponent(reference)}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Verification failed");
-        setReceipt(data.receipt);
+        if (reference) {
+          const res = await fetch(`/api/payments/paystack/verify?reference=${encodeURIComponent(reference)}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.error || "Verification failed");
+          setReceipt(data.receipt);
+        } else if (txId || txRef) {
+          const query = new URLSearchParams({ ...(txId ? { transaction_id: txId } : {}), ...(txRef ? { tx_ref: txRef } : {}) });
+          const res = await fetch(`/api/payments/flutterwave/verify?${query.toString()}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.error || "Verification failed");
+          setReceipt(data.receipt);
+        } else {
+          setError("Missing reference or transaction_id/tx_ref");
+        }
       } catch (e: any) {
         setError(e?.message || String(e));
       } finally {

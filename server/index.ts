@@ -80,8 +80,15 @@ export function createServer() {
   app.post("/api/auth/login", postLogin);
   app.get("/api/auth/me", getMe);
 
-  // Payments (Paystack)
+  // Payments (Flutterwave + Paystack)
   const { initiatePaystack, verifyPaystack, paystackWebhook, getReceipt } = require("./routes/payments");
+  const { initiateFlutterwave, verifyFlutterwave, flutterwaveWebhook, initiatePayout } = require("./routes/flutterwave");
+  // Flutterwave (preferred)
+  app.post("/api/payments/flutterwave/initiate", initiateFlutterwave);
+  app.get("/api/payments/flutterwave/verify", verifyFlutterwave);
+  app.post("/api/payments/flutterwave/webhook", flutterwaveWebhook);
+  app.post("/api/payouts/flutterwave/initiate", initiatePayout);
+  // Paystack (optional fallback)
   app.post("/api/payments/paystack/initiate", initiatePaystack);
   app.get("/api/payments/paystack/verify", verifyPaystack);
   app.post("/api/payments/paystack/webhook", paystackWebhook);
