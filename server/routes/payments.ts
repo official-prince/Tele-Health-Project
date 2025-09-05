@@ -98,7 +98,7 @@ export const initiatePayment: RequestHandler = async (req, res) => {
     };
     await upsertPayment(tx);
 
-    return res.json({ authorizationUrl: json.data.authorization_url, reference });
+    return res.json({ authorizationUrl: json.data.authorization_url, reference, amount: amt, currency: curr, email });
   } catch (err) {
     console.error("[Paystack] initiate exception", err);
     res.status(500).json({ error: "Unexpected error" });
