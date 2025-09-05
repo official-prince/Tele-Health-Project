@@ -43,6 +43,21 @@ export interface Note { id: string; authorUserId: string; createdAt: string; bod
 export interface Prescription { id: string; medication: string; dosage: string; instructions: string; signedBy: string; createdAt: string; signed?: boolean; signedAt?: string; signatureData?: string }
 export interface ChatMessage { id: string; authorUserId: string; createdAt: string; text: string }
 
+export type PaymentStatus = "pending" | "paid" | "failed" | "abandoned" | "reversed" | "refund";
+export interface PaymentReceipt {
+  id: string;
+  provider: "paystack" | string;
+  appointmentId: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  customerEmail?: string;
+  transactionId?: string;
+  createdAt: string;
+  paidAt?: string;
+}
+
 export interface Appointment {
   id: string;
   createdAt: string;
@@ -62,6 +77,8 @@ export interface Appointment {
   messages?: ChatMessage[];
   reminders?: string[];
   files?: { id: string; filename: string; url: string; uploadedAt: string; uploadedBy?: string }[];
+  payments?: PaymentReceipt[];
+  paid?: boolean;
 }
 
 export interface CreateAppointmentRequest {
