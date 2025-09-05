@@ -13,6 +13,8 @@ export function createServer() {
 
   // Middleware
   app.use(cors());
+  // Register webhook BEFORE JSON parser to preserve raw body for signature verification
+  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), paystackWebhook);
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -49,7 +51,6 @@ export function createServer() {
   // Payments (Paystack)
   app.post("/api/payments/initiate", initiatePayment);
   app.get("/api/payments/verify", verifyPayment);
-  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), paystackWebhook);
 
   // Doctor profile and analytics
   app.get("/api/doctor/me", getMyProfile);
