@@ -9,12 +9,13 @@ import type {
   AppointmentStatus,
 } from "@shared/api";
 
-const providers = [
-  { id: "peds-lee", name: "Dr. Karen Lee, Pediatrics" },
-  { id: "fam-ortiz", name: "Dr. Miguel Ortiz, Family Medicine" },
-  { id: "derm-cho", name: "Dr. Mina Cho, Dermatology" },
-  { id: "mh-stone", name: "Alex Stone, LCSW (Therapy)" },
-] as const;
+import { profiles } from "./doctor";
+
+function getProvidersList(filterDay: number | null) {
+  const list = Array.from(profiles.values()).map((p) => ({ id: p.providerId, name: p.displayName + (p.specialty ? `, ${p.specialty}` : ""), availability: p.availability || [] }));
+  if (filterDay === null) return list;
+  return list.filter((p) => (p.availability || []).some((s: any) => s.day === filterDay));
+}
 
 const createSchema = z.object({
   patientName: z.string().min(2).max(80),
@@ -43,6 +44,15 @@ function toISO(date: string, time: string) {
   return iso.toISOString();
 }
 
+function isWithinAvailability(providerId: string, date: string, time: string) {
+  const p = Array.from(profiles.values()).find((x) => x.providerId === providerId);
+  if (!p || !Array.isArray(p.availability) || p.availability.length === 0) return true; // if no availability set, allow
+  const d = new Date(`${date}T${time}:00`);
+  const dow = d.getDay();
+  const t = time;
+  return p.availability.some((slot: any) => slot.day === dow && t >= slot.start && t <= slot.end);
+}
+
 async function fetchAppointmentFromSupabase(supabase: any, id: string) {
   const { data, error } = await supabase.from("appointments").select("*").eq("id", id).limit(1).single();
   if (error) return null;
@@ -57,8 +67,12 @@ export const postAppointment: RequestHandler = async (req, res) => {
   }
 
   const data = parsed.data;
-  const provider = providers.find((p) => p.id === data.providerId);
-  const providerName = provider?.name ?? "Clinician";
+  const prof = Array.from(profiles.values()).find((p) => p.providerId === data.providerId);
+  const providerName = prof ? `${prof.displayName}${prof.specialty ? ", " + prof.specialty : ""}` : "Clinician";
+  if (!isWithinAvailability(data.providerId, data.date, data.time)) {
+    res.status(400).json({ error: "Selected time is outside provider availability" } as ApiError);
+    return;
+  }
 
   const appt: Appointment = {
     id: generateId(),
@@ -133,8 +147,11 @@ export const getAppointments: RequestHandler = async (req, res) => {
   res.json({ appointments: results });
 };
 
-export const listProviders: RequestHandler = (_req, res) => {
-  res.json({ providers });
+export const listProviders: RequestHandler = (req, res) => {
+  const date = (req.query.date as string | undefined) || null;
+  const filterDay = date ? new Date(`${date}T00:00:00`).getDay() : null;
+  const list = getProvidersList(filterDay);
+  res.json({ providers: list.map((p) => ({ id: p.id, name: p.name })) });
 };
 
 export const getAllAppointments: RequestHandler = async (_req, res) => {
