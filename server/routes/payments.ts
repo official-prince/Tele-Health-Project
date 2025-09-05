@@ -19,14 +19,23 @@ function generateReceiptId() {
 }
 
 export const initiatePaystack: RequestHandler = async (req, res) => {
-  const { appointmentId, email, amount, callbackUrl } = (req.body || {}) as { appointmentId?: string; email?: string; amount?: number; callbackUrl?: string };
+  const { appointmentId, email, amount, callbackUrl } = (req.body || {}) as {
+    appointmentId?: string;
+    email?: string;
+    amount?: number;
+    callbackUrl?: string;
+  };
   if (!appointmentId || !email || !amount) {
-    return res.status(400).json({ error: "Missing appointmentId, email or amount" } as ApiError);
+    return res
+      .status(400)
+      .json({ error: "Missing appointmentId, email or amount" } as ApiError);
   }
   const secret = process.env.PAYSTACK_SECRET_KEY;
   const pub = process.env.PAYSTACK_PUBLIC_KEY;
   if (!secret || !pub) {
-    return res.status(500).json({ error: "Paystack keys not configured" } as ApiError);
+    return res
+      .status(500)
+      .json({ error: "Paystack keys not configured" } as ApiError);
   }
   const reference = `carelink_${appointmentId}_${Date.now()}`;
   const currency = getCurrency();
@@ -37,12 +46,20 @@ export const initiatePaystack: RequestHandler = async (req, res) => {
         Authorization: `Bearer ${secret}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, amount: minorUnits(amount), currency, reference, callback_url: callbackUrl }),
+      body: JSON.stringify({
+        email,
+        amount: minorUnits(amount),
+        currency,
+        reference,
+        callback_url: callbackUrl,
+      }),
     });
     const data = (await r.json()) as any;
     if (!r.ok || !data?.status) {
       const msg = (data && (data.message || data.error)) || `HTTP ${r.status}`;
-      return res.status(400).json({ error: `Paystack init failed: ${msg}` } as ApiError);
+      return res
+        .status(400)
+        .json({ error: `Paystack init failed: ${msg}` } as ApiError);
     }
     const receipt: PaymentReceipt = {
       id: generateReceiptId(),
@@ -56,25 +73,42 @@ export const initiatePaystack: RequestHandler = async (req, res) => {
       createdAt: new Date().toISOString(),
     };
     payments.set(reference, receipt);
-    res.json({ authorization_url: data.data.authorization_url, access_code: data.data.access_code, reference });
+    res.json({
+      authorization_url: data.data.authorization_url,
+      access_code: data.data.access_code,
+      reference,
+    });
   } catch (err: any) {
-    res.status(500).json({ error: `Paystack init exception: ${err?.message || err}` } as ApiError);
+    res
+      .status(500)
+      .json({
+        error: `Paystack init exception: ${err?.message || err}`,
+      } as ApiError);
   }
 };
 
 export const verifyPaystack: RequestHandler = async (req, res) => {
   const reference = String(req.query.reference || "");
-  if (!reference) return res.status(400).json({ error: "Missing reference" } as ApiError);
+  if (!reference)
+    return res.status(400).json({ error: "Missing reference" } as ApiError);
   const secret = process.env.PAYSTACK_SECRET_KEY;
-  if (!secret) return res.status(500).json({ error: "Paystack secret not configured" } as ApiError);
+  if (!secret)
+    return res
+      .status(500)
+      .json({ error: "Paystack secret not configured" } as ApiError);
   try {
-    const r = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${secret}` },
-    });
+    const r = await fetch(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: { Authorization: `Bearer ${secret}` },
+      },
+    );
     const data = (await r.json()) as any;
     if (!r.ok || !data?.status) {
       const msg = (data && (data.message || data.error)) || `HTTP ${r.status}`;
-      return res.status(400).json({ error: `Paystack verify failed: ${msg}` } as ApiError);
+      return res
+        .status(400)
+        .json({ error: `Paystack verify failed: ${msg}` } as ApiError);
     }
     const status: string = data.data.status;
     let receipt = payments.get(reference);
@@ -82,11 +116,14 @@ export const verifyPaystack: RequestHandler = async (req, res) => {
       receipt = {
         id: generateReceiptId(),
         provider: "paystack",
-        appointmentId: String((data.data?.metadata && data.data.metadata.appointmentId) || "unknown"),
+        appointmentId: String(
+          (data.data?.metadata && data.data.metadata.appointmentId) ||
+            "unknown",
+        ),
         reference,
         amount: Number(data.data.amount) / 100,
         currency: data.data.currency || getCurrency(),
-        status: status === "success" ? "paid" : status as any,
+        status: status === "success" ? "paid" : (status as any),
         customerEmail: String(data.data.customer?.email || ""),
         createdAt: new Date().toISOString(),
       };
@@ -96,7 +133,7 @@ export const verifyPaystack: RequestHandler = async (req, res) => {
       receipt.paidAt = new Date(data.data.paid_at || Date.now()).toISOString();
       receipt.transactionId = String(data.data.id);
       // attach to appointment (in-memory)
-      const appt = apptStore.find(a => a.id === receipt!.appointmentId);
+      const appt = apptStore.find((a) => a.id === receipt!.appointmentId);
       if (appt) {
         (appt as any).payments = ((appt as any).payments || []).concat(receipt);
         (appt as any).paid = true;
@@ -105,13 +142,20 @@ export const verifyPaystack: RequestHandler = async (req, res) => {
     payments.set(reference, receipt);
     res.json({ receipt });
   } catch (err: any) {
-    res.status(500).json({ error: `Paystack verify exception: ${err?.message || err}` } as ApiError);
+    res
+      .status(500)
+      .json({
+        error: `Paystack verify exception: ${err?.message || err}`,
+      } as ApiError);
   }
 };
 
 export const paystackWebhook: RequestHandler = async (req, res) => {
   const secret = process.env.PAYSTACK_SECRET_KEY;
-  if (!secret) return res.status(500).json({ error: "Paystack secret not configured" } as ApiError);
+  if (!secret)
+    return res
+      .status(500)
+      .json({ error: "Paystack secret not configured" } as ApiError);
   const signature = req.headers["x-paystack-signature"] as string | undefined;
   const raw = JSON.stringify(req.body || {});
   const hash = crypto.createHmac("sha512", secret).update(raw).digest("hex");
@@ -127,7 +171,9 @@ export const paystackWebhook: RequestHandler = async (req, res) => {
       receipt = {
         id: generateReceiptId(),
         provider: "paystack",
-        appointmentId: String((data.metadata && data.metadata.appointmentId) || "unknown"),
+        appointmentId: String(
+          (data.metadata && data.metadata.appointmentId) || "unknown",
+        ),
         reference,
         amount: Number(data.amount) / 100,
         currency: data.currency || getCurrency(),
@@ -140,7 +186,7 @@ export const paystackWebhook: RequestHandler = async (req, res) => {
     receipt.paidAt = new Date(data.paid_at || Date.now()).toISOString();
     receipt.transactionId = String(data.id);
     payments.set(reference, receipt);
-    const appt = apptStore.find(a => a.id === receipt!.appointmentId);
+    const appt = apptStore.find((a) => a.id === receipt!.appointmentId);
     if (appt) {
       (appt as any).payments = ((appt as any).payments || []).concat(receipt);
       (appt as any).paid = true;
@@ -152,6 +198,7 @@ export const paystackWebhook: RequestHandler = async (req, res) => {
 export const getReceipt: RequestHandler = async (req, res) => {
   const reference = req.params.reference as string;
   const receipt = payments.get(reference);
-  if (!receipt) return res.status(404).json({ error: "Receipt not found" } as ApiError);
+  if (!receipt)
+    return res.status(404).json({ error: "Receipt not found" } as ApiError);
   res.json({ receipt });
 };

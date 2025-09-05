@@ -16,13 +16,20 @@ export default function PaymentCallback() {
     (async () => {
       try {
         if (reference) {
-          const res = await fetch(`/api/payments/paystack/verify?reference=${encodeURIComponent(reference)}`);
+          const res = await fetch(
+            `/api/payments/paystack/verify?reference=${encodeURIComponent(reference)}`,
+          );
           const data = await res.json();
           if (!res.ok) throw new Error(data?.error || "Verification failed");
           setReceipt(data.receipt);
         } else if (txId || txRef) {
-          const query = new URLSearchParams({ ...(txId ? { transaction_id: txId } : {}), ...(txRef ? { tx_ref: txRef } : {}) });
-          const res = await fetch(`/api/payments/flutterwave/verify?${query.toString()}`);
+          const query = new URLSearchParams({
+            ...(txId ? { transaction_id: txId } : {}),
+            ...(txRef ? { tx_ref: txRef } : {}),
+          });
+          const res = await fetch(
+            `/api/payments/flutterwave/verify?${query.toString()}`,
+          );
           const data = await res.json();
           if (!res.ok) throw new Error(data?.error || "Verification failed");
           setReceipt(data.receipt);
@@ -38,7 +45,8 @@ export default function PaymentCallback() {
   }, []);
 
   if (loading) return <div className="container py-10">Verifying payment…</div>;
-  if (error) return <div className="container py-10 text-destructive">{error}</div>;
+  if (error)
+    return <div className="container py-10 text-destructive">{error}</div>;
 
   return (
     <div className="container py-10 max-w-2xl">
@@ -47,13 +55,30 @@ export default function PaymentCallback() {
           <CardTitle>Payment receipt</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <div><span className="text-muted-foreground">Reference:</span> {receipt.reference}</div>
-          <div><span className="text-muted-foreground">Status:</span> {receipt.status}</div>
-          <div><span className="text-muted-foreground">Amount:</span> {receipt.currency} {(receipt.amount).toFixed(2)}</div>
-          <div><span className="text-muted-foreground">Paid at:</span> {receipt.paidAt ? new Date(receipt.paidAt).toLocaleString() : '-'}</div>
-          <div><span className="text-muted-foreground">Appointment ID:</span> {receipt.appointmentId}</div>
+          <div>
+            <span className="text-muted-foreground">Reference:</span>{" "}
+            {receipt.reference}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Status:</span>{" "}
+            {receipt.status}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Amount:</span>{" "}
+            {receipt.currency} {receipt.amount.toFixed(2)}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Paid at:</span>{" "}
+            {receipt.paidAt ? new Date(receipt.paidAt).toLocaleString() : "-"}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Appointment ID:</span>{" "}
+            {receipt.appointmentId}
+          </div>
           <div className="pt-4">
-            <Button asChild><Link to="/appointments">Back to appointments</Link></Button>
+            <Button asChild>
+              <Link to="/appointments">Back to appointments</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -2,7 +2,9 @@
  * Shared code between client and server
  */
 
-export interface DemoResponse { message: string }
+export interface DemoResponse {
+  message: string;
+}
 
 // Auth
 export type UserRole = "patient" | "doctor" | "admin";
@@ -13,11 +15,18 @@ export interface AuthUser {
   role: UserRole;
   providerId?: string;
 }
-export interface AuthSessionResponse { token: string; user: AuthUser }
+export interface AuthSessionResponse {
+  token: string;
+  user: AuthUser;
+}
 
 // Doctor profile
 export type VerificationStatus = "pending" | "approved" | "rejected";
-export interface AvailabilitySlot { day: number; start: string; end: string }
+export interface AvailabilitySlot {
+  day: number;
+  start: string;
+  end: string;
+}
 export interface DoctorProfile {
   userId: string;
   providerId: string;
@@ -38,12 +47,42 @@ export interface DoctorProfile {
 // Appointments
 export type AppointmentStatus = "scheduled" | "cancelled" | "completed";
 
-export interface IntakeForm { symptoms: string; medications?: string; allergies?: string }
-export interface Note { id: string; authorUserId: string; createdAt: string; body: string }
-export interface Prescription { id: string; medication: string; dosage: string; instructions: string; signedBy: string; createdAt: string; signed?: boolean; signedAt?: string; signatureData?: string }
-export interface ChatMessage { id: string; authorUserId: string; createdAt: string; text: string }
+export interface IntakeForm {
+  symptoms: string;
+  medications?: string;
+  allergies?: string;
+}
+export interface Note {
+  id: string;
+  authorUserId: string;
+  createdAt: string;
+  body: string;
+}
+export interface Prescription {
+  id: string;
+  medication: string;
+  dosage: string;
+  instructions: string;
+  signedBy: string;
+  createdAt: string;
+  signed?: boolean;
+  signedAt?: string;
+  signatureData?: string;
+}
+export interface ChatMessage {
+  id: string;
+  authorUserId: string;
+  createdAt: string;
+  text: string;
+}
 
-export type PaymentStatus = "pending" | "paid" | "failed" | "abandoned" | "reversed" | "refund";
+export type PaymentStatus =
+  | "pending"
+  | "paid"
+  | "failed"
+  | "abandoned"
+  | "reversed"
+  | "refund";
 export interface PaymentReceipt {
   id: string;
   provider: "paystack" | string;
@@ -76,7 +115,13 @@ export interface Appointment {
   prescriptions?: Prescription[];
   messages?: ChatMessage[];
   reminders?: string[];
-  files?: { id: string; filename: string; url: string; uploadedAt: string; uploadedBy?: string }[];
+  files?: {
+    id: string;
+    filename: string;
+    url: string;
+    uploadedAt: string;
+    uploadedBy?: string;
+  }[];
   payments?: PaymentReceipt[];
   paid?: boolean;
 }
@@ -91,10 +136,22 @@ export interface CreateAppointmentRequest {
   reason: string;
 }
 
-export interface CreateAppointmentResponse { appointment: Appointment }
+export interface CreateAppointmentResponse {
+  appointment: Appointment;
+}
 
-export interface GetAppointmentsQuery { email?: string; providerId?: string }
+export interface GetAppointmentsQuery {
+  email?: string;
+  providerId?: string;
+}
 
-export interface EarningsSummary { totalRevenue: number; completed: number; cancelled: number; byWeek: { week: string; revenue: number; sessions: number }[] }
+export interface EarningsSummary {
+  totalRevenue: number;
+  completed: number;
+  cancelled: number;
+  byWeek: { week: string; revenue: number; sessions: number }[];
+}
 
-export interface ApiError { error: string }
+export interface ApiError {
+  error: string;
+}

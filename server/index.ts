@@ -2,10 +2,53 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { getAppointments, listProviders, postAppointment, getAllAppointments, patchAppointmentStatus, addIntake, addNote, addPrescription, getMessages, postMessage, addReminder, uploadAppointmentFile, createMeeting, signPrescription, getPayouts, postPayout } from "./routes/appointments";
+import {
+  getAppointments,
+  listProviders,
+  postAppointment,
+  getAllAppointments,
+  patchAppointmentStatus,
+  addIntake,
+  addNote,
+  addPrescription,
+  getMessages,
+  postMessage,
+  addReminder,
+  uploadAppointmentFile,
+  createMeeting,
+  signPrescription,
+  getPayouts,
+  postPayout,
+} from "./routes/appointments";
 import { getMe, postLogin, postSignup } from "./routes/auth";
-import { getMyProfile, patchMyProfile, adminApproveDoctor, listDoctors, getEarnings, uploadLicense, getNotifications } from "./routes/doctor";
-import { getPatients, patchPatient, postRefund, getFinanceSummary, getPlans, upsertPlan, deletePlan, getAnnouncements, postAnnouncement, deleteAnnouncement, getTickets, postTicket, patchTicket, getSecurity, patchSecurity, getLogs, createDoctor } from "./routes/admin";
+import {
+  getMyProfile,
+  patchMyProfile,
+  adminApproveDoctor,
+  listDoctors,
+  getEarnings,
+  uploadLicense,
+  getNotifications,
+} from "./routes/doctor";
+import {
+  getPatients,
+  patchPatient,
+  postRefund,
+  getFinanceSummary,
+  getPlans,
+  upsertPlan,
+  deletePlan,
+  getAnnouncements,
+  postAnnouncement,
+  deleteAnnouncement,
+  getTickets,
+  postTicket,
+  patchTicket,
+  getSecurity,
+  patchSecurity,
+  getLogs,
+  createDoctor,
+} from "./routes/admin";
 
 export function createServer() {
   const app = express();
@@ -39,7 +82,10 @@ export function createServer() {
   // create meeting (placeholder integration)
   app.post("/api/appointments/:id/create-meeting", createMeeting);
   // sign prescription
-  app.post("/api/appointments/:id/prescriptions/:prescId/sign", signPrescription);
+  app.post(
+    "/api/appointments/:id/prescriptions/:prescId/sign",
+    signPrescription,
+  );
 
   // Doctor payouts
   app.get("/api/doctor/:providerId/payouts", getPayouts);
@@ -81,8 +127,18 @@ export function createServer() {
   app.get("/api/auth/me", getMe);
 
   // Payments (Flutterwave + Paystack)
-  const { initiatePaystack, verifyPaystack, paystackWebhook, getReceipt } = require("./routes/payments");
-  const { initiateFlutterwave, verifyFlutterwave, flutterwaveWebhook, initiatePayout } = require("./routes/flutterwave");
+  const {
+    initiatePaystack,
+    verifyPaystack,
+    paystackWebhook,
+    getReceipt,
+  } = require("./routes/payments");
+  const {
+    initiateFlutterwave,
+    verifyFlutterwave,
+    flutterwaveWebhook,
+    initiatePayout,
+  } = require("./routes/flutterwave");
   // Flutterwave (preferred)
   app.post("/api/payments/flutterwave/initiate", initiateFlutterwave);
   app.get("/api/payments/flutterwave/verify", verifyFlutterwave);
