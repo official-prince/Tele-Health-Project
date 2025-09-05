@@ -292,9 +292,45 @@ async function payForAppointment(appointmentId: string) {
   try {
     const res = await fetch('/api/payments/initiate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId }) });
     const d = await res.json();
-    if (!res.ok || !d.authorizationUrl) { alert(d.error || 'Failed to start payment'); return; }
-    // Redirect to Paystack checkout; callback will return to /payment-status
-    window.location.href = d.authorizationUrl as string;
+    if (!res.ok || !d.reference) { alert(d.error || 'Failed to start payment'); return; }
+
+    const pubKey = (import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string) || (typeof process !== 'undefined' ? (process.env.PAYSTACK_PUBLIC_KEY as string) : undefined);
+
+    async function ensureScript() {
+      if (typeof window === 'undefined') return;
+      if ((window as any).PaystackPop) return;
+      await new Promise<void>((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://js.paystack.co/v1/inline.js';
+        s.async = true;
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Failed to load Paystack script'));
+        document.head.appendChild(s);
+      });
+    }
+
+    if (pubKey) {
+      try {
+        await ensureScript();
+        const ref = d.reference as string;
+        const handler = (window as any).PaystackPop.setup({
+          key: pubKey,
+          email: d.email,
+          amount: Math.round((d.amount || 0) * 100),
+          currency: d.currency || 'USD',
+          ref,
+          callback: function () { window.location.href = `/payment-status?reference=${encodeURIComponent(ref)}`; },
+          onClose: function () { /* no-op */ },
+        });
+        handler.openIframe();
+        return;
+      } catch (err) {
+        console.warn('Inline Paystack failed; falling back to redirect', err);
+      }
+    }
+
+    if (d.authorizationUrl) { window.location.href = d.authorizationUrl as string; return; }
+    alert('Could not start payment');
   } catch (err) { console.warn('Payment init failed', err); alert('Payment failed to initialize'); }
 }
 
