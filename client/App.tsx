@@ -58,6 +58,7 @@ const App = () => (
               <Route path="/admin" element={<AdminGuard />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/payments/callback" element={<PaymentCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
