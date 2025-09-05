@@ -664,6 +664,7 @@ function weekOfYear(date: Date) {
 }
 
 function Settings({ profile, onChange }: { profile: DoctorProfile | null; onChange: (p: DoctorProfile) => void }) {
+  const { token } = useAuth();
   const [form, setForm] = useState<DoctorProfile | null>(profile);
   useEffect(() => setForm(profile), [profile]);
   if (!form) return null;
