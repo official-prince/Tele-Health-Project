@@ -82,7 +82,7 @@ export default function Doctor() {
     let mounted = true;
     async function load() {
       try {
-        const res = await fetch('/api/doctor/notifications');
+        const res = await fetch('/api/doctor/notifications', { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
         if (!res.ok) return;
         const data = await res.json();
         if (mounted) setNotifications(data);
