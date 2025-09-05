@@ -101,7 +101,30 @@ export default function Appointments() {
               <h3 className="font-semibold">Quick intake</h3>
               <Intake appointmentId={submitted.id} />
             </div>
-            <Button className="mt-6" onClick={() => setSubmitted(null)}>Book another</Button>
+            <div className="pt-6 flex flex-wrap gap-3">
+              <Button onClick={() => (window.location.href = `/patient?tab=appointments`)}>View appointments</Button>
+              <Button variant="outline" onClick={async () => {
+                try {
+                  const res = await fetch('/api/payments/initiate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId: submitted.id }) });
+                  const d = await res.json();
+                  if (!res.ok || !d.reference) { alert(d.error || 'Failed to start payment'); return; }
+                  const pubKey = (import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string) || (typeof process !== 'undefined' ? (process.env.PAYSTACK_PUBLIC_KEY as string) : undefined);
+                  if (pubKey) {
+                    try {
+                      await new Promise<void>((resolve, reject) => {
+                        if ((window as any).PaystackPop) return resolve();
+                        const s = document.createElement('script');
+                        s.src = 'https://js.paystack.co/v1/inline.js'; s.async = true; s.onload = () => resolve(); s.onerror = () => reject(new Error('Failed to load Paystack script')); document.head.appendChild(s);
+                      });
+                      const ref = d.reference as string;
+                      const handler = (window as any).PaystackPop.setup({ key: pubKey, email: d.email, amount: Math.round((d.amount || 0) * 100), currency: d.currency || 'USD', ref, callback: function () { window.location.href = `/payment-status?reference=${encodeURIComponent(ref)}`; }, onClose: function () {} });
+                      handler.openIframe();
+                    } catch (err) { console.warn('Inline Paystack failed; falling back', err); if (d.authorizationUrl) window.location.href = d.authorizationUrl as string; }
+                  } else if (d.authorizationUrl) { window.location.href = d.authorizationUrl as string; }
+                } catch (err) { console.warn('Payment init failed', err); alert('Payment failed to initialize'); }
+              }}>Pay now</Button>
+              <Button className="" onClick={() => setSubmitted(null)}>Book another</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
