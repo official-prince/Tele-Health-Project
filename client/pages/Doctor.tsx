@@ -17,7 +17,7 @@ import { CalendarSection, TodayList } from "@/pages/calendarHelpers";
 const supabase = createBrowserSupabaseClient();
 
 export default function Doctor() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Appointment[]>([]);
   const [profile, setProfile] = useState<DoctorProfile | null>(null);
