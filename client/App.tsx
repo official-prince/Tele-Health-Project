@@ -17,6 +17,7 @@ import Patient from "./pages/Patient";
 import LayoutOutlet from "@/components/LayoutOutlet";
 import { AuthProvider } from "@/components/AuthProvider";
 import { RequireRole } from "@/components/auth-guards";
+import PaymentCallback from "./pages/PaymentCallback";
 
 const queryClient = new QueryClient();
 
