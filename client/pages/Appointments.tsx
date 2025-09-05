@@ -84,13 +84,15 @@ export default function Appointments() {
   const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState<Provider[]>([]);
 
+  const dateWatch = (form as any).watch ? (form as any).watch('date') : '';
   useEffect(() => {
     (async () => {
-      const res = await fetch('/api/providers');
+      const qs = dateWatch ? `?date=${encodeURIComponent(dateWatch)}` : '';
+      const res = await fetch(`/api/providers${qs}`);
       const data = await res.json();
       setProviders(data.providers ?? []);
     })();
-  }, []);
+  }, [dateWatch]);
 
   const form = useForm<FormValues>({ resolver: zodResolver(FormSchema), defaultValues: {
     patientName: "",
@@ -206,6 +208,7 @@ export default function Appointments() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-destructive mt-1">{form.formState.errors.providerId?.message}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{providers.length === 0 ? 'No doctors available for the selected date.' : 'Select a doctor available on the chosen date.'}</p>
                 </div>
 
                 <div>
