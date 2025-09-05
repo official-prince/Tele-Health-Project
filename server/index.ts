@@ -2,11 +2,58 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { getAppointments, listProviders, postAppointment, getAllAppointments, patchAppointmentStatus, addIntake, addNote, addPrescription, getMessages, postMessage, addReminder, uploadAppointmentFile, createMeeting, signPrescription, getPayouts, postPayout } from "./routes/appointments";
+import {
+  getAppointments,
+  listProviders,
+  postAppointment,
+  getAllAppointments,
+  patchAppointmentStatus,
+  addIntake,
+  addNote,
+  addPrescription,
+  getMessages,
+  postMessage,
+  addReminder,
+  uploadAppointmentFile,
+  createMeeting,
+  signPrescription,
+  getPayouts,
+  postPayout,
+} from "./routes/appointments";
 import { getMe, postLogin, postSignup } from "./routes/auth";
-import { getMyProfile, patchMyProfile, adminApproveDoctor, listDoctors, getEarnings, uploadLicense, getNotifications } from "./routes/doctor";
-import { getPatients, patchPatient, postRefund, getFinanceSummary, getPlans, upsertPlan, deletePlan, getAnnouncements, postAnnouncement, deleteAnnouncement, getTickets, postTicket, patchTicket, getSecurity, patchSecurity, getLogs, createDoctor } from "./routes/admin";
-import { initiatePayment, verifyPayment, paystackWebhook } from "./routes/payments";
+import {
+  getMyProfile,
+  patchMyProfile,
+  adminApproveDoctor,
+  listDoctors,
+  getEarnings,
+  uploadLicense,
+  getNotifications,
+} from "./routes/doctor";
+import {
+  getPatients,
+  patchPatient,
+  postRefund,
+  getFinanceSummary,
+  getPlans,
+  upsertPlan,
+  deletePlan,
+  getAnnouncements,
+  postAnnouncement,
+  deleteAnnouncement,
+  getTickets,
+  postTicket,
+  patchTicket,
+  getSecurity,
+  patchSecurity,
+  getLogs,
+  createDoctor,
+} from "./routes/admin";
+import {
+  initiatePayment,
+  verifyPayment,
+  paystackWebhook,
+} from "./routes/payments";
 
 export function createServer() {
   const app = express();
@@ -14,7 +61,11 @@ export function createServer() {
   // Middleware
   app.use(cors());
   // Register webhook BEFORE JSON parser to preserve raw body for signature verification
-  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), paystackWebhook);
+  app.post(
+    "/api/payments/webhook",
+    express.raw({ type: "application/json" }),
+    paystackWebhook,
+  );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -42,7 +93,10 @@ export function createServer() {
   // create meeting (placeholder integration)
   app.post("/api/appointments/:id/create-meeting", createMeeting);
   // sign prescription
-  app.post("/api/appointments/:id/prescriptions/:prescId/sign", signPrescription);
+  app.post(
+    "/api/appointments/:id/prescriptions/:prescId/sign",
+    signPrescription,
+  );
 
   // Doctor payouts
   app.get("/api/doctor/:providerId/payouts", getPayouts);
