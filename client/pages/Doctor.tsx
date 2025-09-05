@@ -749,7 +749,7 @@ function Settings({ profile, onChange }: { profile: DoctorProfile | null; onChan
                   }
                   // Fallback: send base64 to server endpoint which will use service role to store it (if available)
                   try {
-                    const res = await fetch('/api/doctor/me/license', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: file.name, contentType: file.type, data: base64 }) });
+                    const res = await fetch('/api/doctor/me/license', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ filename: file.name, contentType: file.type, data: base64 }) });
                     const d = await res.json();
                     if (d.url) onChange({ ...form, licenseUrl: d.url });
                   } catch (err) {
