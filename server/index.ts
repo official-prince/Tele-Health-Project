@@ -80,5 +80,12 @@ export function createServer() {
   app.post("/api/auth/login", postLogin);
   app.get("/api/auth/me", getMe);
 
+  // Payments (Paystack)
+  const { initiatePaystack, verifyPaystack, paystackWebhook, getReceipt } = require("./routes/payments");
+  app.post("/api/payments/paystack/initiate", initiatePaystack);
+  app.get("/api/payments/paystack/verify", verifyPaystack);
+  app.post("/api/payments/paystack/webhook", paystackWebhook);
+  app.get("/api/payments/receipt/:reference", getReceipt);
+
   return app;
 }
