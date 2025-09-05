@@ -14,6 +14,7 @@ import Signup from "./pages/Signup";
 import Doctor from "./pages/Doctor";
 import Admin from "./pages/Admin";
 import Patient from "./pages/Patient";
+import PaymentStatus from "./pages/PaymentStatus";
 import LayoutOutlet from "@/components/LayoutOutlet";
 import { AuthProvider } from "@/components/AuthProvider";
 import { RequireRole } from "@/components/auth-guards";
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/appointments" element={<Appointments />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/payment-status" element={<PaymentStatus />} />
             </Route>
             <Route element={<LayoutOutlet />}>
               <Route path="/doctor" element={<DoctorGuard />} />
