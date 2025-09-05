@@ -97,6 +97,9 @@ export default function Appointments() {
             <div><span className="text-muted-foreground">With:</span> {submitted.providerName}</div>
             <div><span className="text-muted-foreground">Where:</span> <a className="text-primary underline" href={submitted.meetingUrl} target="_blank" rel="noreferrer">Join video visit</a></div>
             <div className="pt-4">Confirmation code: <span className="font-mono tracking-wider bg-muted px-2 py-1 rounded">{submitted.confirmationCode}</span></div>
+            <div className="pt-4">
+              <PaystackButton appointment={submitted} />
+            </div>
             <div className="pt-6">
               <h3 className="font-semibold">Quick intake</h3>
               <Intake appointmentId={submitted.id} />
