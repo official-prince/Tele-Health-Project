@@ -193,7 +193,7 @@ function MyAppointments({ userEmail }: { userEmail: string }) {
       {items && items.length === 0 && <div className="text-sm text-muted-foreground">No appointments yet.</div>}
       <div className="grid gap-3">
         {items && items.map(a => (
-          <Card key={a.id}><CardContent className="py-3 flex items-center justify-between"><div><div className="font-medium">{a.providerName}</div><div className="text-sm text-muted-foreground">{new Date(a.scheduledAt).toLocaleString()}</div></div><div className="flex gap-2"><a className="text-primary underline" href={a.meetingUrl} target="_blank" rel="noreferrer">Join</a><Button variant="outline" onClick={() => reschedule(a.id)}>Reschedule</Button></div></CardContent></Card>
+          <Card key={a.id}><CardContent className="py-3 flex items-center justify-between"><div><div className="font-medium">{a.providerName}</div><div className="text-sm text-muted-foreground">{new Date(a.scheduledAt).toLocaleString()}</div>{(a as any).paymentStatus === 'success' ? <div className="text-xs text-emerald-600">Paid{(a as any).paidAt ? ` • ${new Date((a as any).paidAt).toLocaleString()}` : ''}</div> : <div className="text-xs text-amber-600">Unpaid</div>}</div><div className="flex gap-2 flex-wrap justify-end"><a className="text-primary underline" href={a.meetingUrl} target="_blank" rel="noreferrer">Join</a><Button variant="outline" onClick={() => reschedule(a.id)}>Reschedule</Button>{(a as any).paymentStatus !== 'success' && <Button onClick={() => payForAppointment(a.id)}>Pay</Button>}</div></CardContent></Card>
         ))}
       </div>
     </div>
@@ -288,6 +288,16 @@ function Records({ userEmail }: { userEmail: string }) {
   );
 }
 
+async function payForAppointment(appointmentId: string) {
+  try {
+    const res = await fetch('/api/payments/initiate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId }) });
+    const d = await res.json();
+    if (!res.ok || !d.authorizationUrl) { alert(d.error || 'Failed to start payment'); return; }
+    // Redirect to Paystack checkout; callback will return to /payment-status
+    window.location.href = d.authorizationUrl as string;
+  } catch (err) { console.warn('Payment init failed', err); alert('Payment failed to initialize'); }
+}
+
 function Payments({ userEmail }: { userEmail: string }) {
   // Payments integrate with Stripe/PayPal. Here we show a simple billing history based on appointments.
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -308,7 +318,7 @@ function Payments({ userEmail }: { userEmail: string }) {
       <h2 className="text-xl font-semibold mb-4">Billing & subscriptions</h2>
       <div className="grid gap-2">
         {invoices.map((i) => (
-          <Card key={i.id}><CardContent className="py-3 flex items-center justify-between"><div><div className="font-medium">Invoice {i.id}</div><div className="text-sm text-muted-foreground">{new Date(i.date).toLocaleDateString()} • ${i.amount}</div></div><div className="text-sm">{i.status}</div></CardContent></Card>
+          <Card key={i.id}><CardContent className="py-3 flex items-center justify-between"><div><div className="font-medium">Invoice {i.id}</div><div className="text-sm text-muted-foreground">{new Date(i.date).toLocaleDateString()} • ${i.amount}</div></div><div className="text-sm capitalize">{i.status}</div></CardContent></Card>
         ))}
       </div>
     </div>

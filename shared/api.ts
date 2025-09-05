@@ -56,6 +56,10 @@ export interface Appointment {
   status: AppointmentStatus;
   confirmationCode: string;
   meetingUrl: string;
+  // Payment fields (set by webhook/verification)
+  paymentStatus?: 'unpaid' | 'initialized' | 'success' | 'failed';
+  paidAt?: string;
+  feeUSD?: number;
   intake?: IntakeForm;
   notes?: Note[];
   prescriptions?: Prescription[];
@@ -79,5 +83,21 @@ export interface CreateAppointmentResponse { appointment: Appointment }
 export interface GetAppointmentsQuery { email?: string; providerId?: string }
 
 export interface EarningsSummary { totalRevenue: number; completed: number; cancelled: number; byWeek: { week: string; revenue: number; sessions: number }[] }
+
+export interface PaymentTransaction {
+  id: string;
+  provider: 'paystack';
+  reference: string;
+  appointmentId: string;
+  patientEmail: string;
+  amount: number; // major units (e.g., USD)
+  currency: string; // e.g., 'USD', 'NGN'
+  status: 'initialized' | 'success' | 'failed' | 'abandoned' | string;
+  channel?: string; // card, bank, ussd, etc
+  paidAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, any>;
+}
 
 export interface ApiError { error: string }
