@@ -61,7 +61,7 @@ export default function Doctor() {
       }
     }
 
-    const res = await fetch('/api/doctor/me');
+    const res = await fetch('/api/doctor/me', { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
     const data = await res.json();
     setProfile(data);
   };
